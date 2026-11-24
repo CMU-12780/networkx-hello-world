@@ -8,8 +8,9 @@ A small walking network of five CMU buildings. You build the graph, find the fas
 2. On your fork's **Actions** tab, enable workflows. GitHub turns them off on forks.
 3. Fill in the blanks marked `YOUR CODE HERE` and `TODO` in `cmu_campus_network.py`. The tests in `test_cmu_campus_network.py` run on every push and fail until Part 3 is filled in.
 4. At the bottom of the script, pick one of the three challenges.
-5. Add a GitHub Actions workflow that builds a container image and pushes it to the GitHub Container Registry (GHCR). See [Build and Publish a Container](#build-and-publish-a-container).
-6. Submit the link to your repository on Canvas. Grading uses your workflow runs and your container image.
+5. Add a GitHub Actions workflow that builds a container image on every push to `main` and pushes it to the GitHub Container Registry (GHCR). See [Build and Publish a Container](#build-and-publish-a-container).
+6. When you're happy with the result, publish a release. The workflow builds a versioned image from it.
+7. Submit the link to your release on Canvas. Grading uses your workflow runs and the release's container image.
 
 ## NetworkX Reference
 
@@ -72,7 +73,17 @@ docker run --rm networkx-hello-world
 
 ### 2. Write the Workflow
 
-Add a second workflow in `.github/workflows/` that runs on pushes to `main`. It checks out the code, signs in to `ghcr.io` with `docker/login-action` and builds and pushes the image with `docker/build-push-action`.
+Add a second workflow in `.github/workflows/` that runs on pushes to `main` and when you publish a release:
+
+```yaml
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+```
+
+It checks out the code, signs in to `ghcr.io` with `docker/login-action` and builds and pushes the image with `docker/build-push-action`.
 
 The workflow's `GITHUB_TOKEN` is read-only by default. Grant it permission to publish packages at the top of the workflow:
 
@@ -82,19 +93,35 @@ permissions:
   packages: write
 ```
 
-Image names must be lowercase, and GitHub usernames are often mixed case. `docker/metadata-action` builds a lowercase image name and tags for you. Pass its `tags` output to `docker/build-push-action`.
+Image names must be lowercase, and GitHub usernames are often mixed case. `docker/metadata-action` builds a lowercase image name and tags for you. These tag rules name the image after the branch on a push and after the version on a release:
 
-### 3. Make the Image Public
+```yaml
+tags: |
+  type=ref,event=branch
+  type=semver,pattern={{version}}
+```
+
+Pass its `tags` output to `docker/build-push-action`.
+
+### 3. Publish a Release
+
+On your repository's home page, choose **Releases**, then **Draft a new release**. Under **Choose a tag**, type a new tag in the form `v1.0.0` and create it, then choose **Publish release**. The workflow builds the image and tags it `1.0.0`. With a tag in any other form, the workflow has no tag for the image and the push fails.
+
+To ship a change after that, publish a new release with a higher version, such as `v1.0.1`. Don't delete or reuse a published tag.
+
+### 4. Make the Image Public
 
 GHCR packages start out private. On your GitHub profile, open **Packages**, choose the image, then **Package settings**, and change its visibility to public so it can be pulled for grading.
 
-### 4. Pull and Run It
+### 5. Pull and Run It
 
-Replace `your-username` with your GitHub username in lowercase:
+Replace `your-username` with your GitHub username in lowercase and `1.0.0` with your release's version:
 
 ```bash
-docker pull ghcr.io/your-username/networkx-hello-world:main
-docker run --rm ghcr.io/your-username/networkx-hello-world:main
+docker pull ghcr.io/your-username/networkx-hello-world:1.0.0
+docker run --rm ghcr.io/your-username/networkx-hello-world:1.0.0
 ```
+
+The `main` tag always holds the latest build from the `main` branch.
 
 You can also pull and run the image from Docker Desktop.
