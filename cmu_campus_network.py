@@ -46,7 +46,7 @@ paths = [
     ('Gates Hillman Center', 'Wean Hall', 2),
     ('Wean Hall', 'Hunt Library', 3),
     ('Hunt Library', 'Cohon Center', 2),
-    ('Cohon Center', 'Tepper Building', 1),
+    ('Cohon Center', 'Tepper Building', 2),
     ('Tepper Building', 'Gates Hillman Center', 2),
     ('Wean Hall', 'Cohon Center', 4)  # Alternative longer path
 ]
@@ -133,7 +133,7 @@ for node in G_export.nodes():
     if 'pos' in G_export.nodes[node]:
         del G_export.nodes[node]['pos']
 nx.write_graphml(G_export, 'cmu_network.graphml')
-print("Network exported to cmu_networks.graphml (can be opened in other tools)")
+print("Network exported to cmu_network.graphml (can be opened in other tools)")
 
 # ============================================================================
 # Part 6: Harder Challenges (Pick 1 Challenge)

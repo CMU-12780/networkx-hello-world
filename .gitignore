@@ -1,0 +1,9 @@
+__pycache__/
+.pytest_cache/
+*.pyc
+.venv/
+venv/
+
+# Script output
+cmu_network.png
+cmu_network.graphml
